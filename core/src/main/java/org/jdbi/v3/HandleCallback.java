@@ -17,7 +17,7 @@ package org.jdbi.v3;
  * Callback for use with {@link org.jdbi.v3.DBI#withHandle(HandleCallback)}
  */
 @FunctionalInterface
-public interface HandleCallback<T>
+public interface HandleCallback<R, X extends Exception>
 {
     /**
      * Will be invoked with an open Handle. The handle will be closed when this
@@ -26,8 +26,7 @@ public interface HandleCallback<T>
      *
      * @param handle Handle to be used only within scope of this callback
      * @return The return value of the callback
-     * @throws Exception will result in a {@link org.jdbi.v3.exceptions.CallbackFailedException} wrapping
-     *                   the exception being thrown
+     * @throws X exception thrown by the callback
      */
-    T withHandle(Handle handle) throws Exception;
+    R withHandle(Handle handle) throws X;
 }

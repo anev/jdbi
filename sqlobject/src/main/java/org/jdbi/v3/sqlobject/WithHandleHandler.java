@@ -18,20 +18,14 @@ import java.util.function.Supplier;
 import net.sf.cglib.proxy.MethodProxy;
 
 import org.jdbi.v3.Handle;
-import org.jdbi.v3.exceptions.CallbackFailedException;
 import org.jdbi.v3.HandleCallback;
 
 class WithHandleHandler implements Handler
 {
     @Override
-    public Object invoke(Supplier<Handle> handle, Object target, Object[] args, MethodProxy mp)
+    public Object invoke(Supplier<Handle> handle, Object target, Object[] args, MethodProxy mp) throws Exception
     {
-        final HandleCallback<?> callback = (HandleCallback<?>) args[0];
-        try {
-            return callback.withHandle(handle.get());
-        }
-        catch (Exception e) {
-            throw new CallbackFailedException(e);
-        }
+        final HandleCallback<?, ?> callback = (HandleCallback) args[0];
+        return callback.withHandle(handle.get());
     }
 }

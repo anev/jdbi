@@ -23,15 +23,10 @@ import org.jdbi.v3.HandleConsumer;
 class UseHandleHandler implements Handler
 {
     @Override
-    public Object invoke(Supplier<Handle> handle, Object target, Object[] args, MethodProxy mp)
+    public Object invoke(Supplier<Handle> handle, Object target, Object[] args, MethodProxy mp) throws Exception
     {
         final HandleConsumer consumer = (HandleConsumer) args[0];
-        try {
-            consumer.useHandle(handle.get());
-            return null;
-        }
-        catch (Exception e) {
-            throw new CallbackFailedException(e);
-        }
+        consumer.useHandle(handle.get());
+        return null;
     }
 }

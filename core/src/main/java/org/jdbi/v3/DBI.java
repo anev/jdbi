@@ -325,13 +325,10 @@ public class DBI
      * @throws CallbackFailedException Will be thrown if callback raises an exception. This exception will
      *                                 wrap the exception thrown by the callback.
      */
-    public <ReturnType> ReturnType withHandle(HandleCallback<ReturnType> callback) throws CallbackFailedException
+    public <R, X extends Exception> R withHandle(HandleCallback<R, X> callback) throws X
     {
         try (Handle h = this.open()) {
             return callback.withHandle(h);
-        }
-        catch (Exception e) {
-            throw new CallbackFailedException(e);
         }
     }
 
@@ -343,7 +340,7 @@ public class DBI
      * @throws CallbackFailedException Will be thrown if callback raises an exception. This exception will
      *                                 wrap the exception thrown by the callback.
      */
-    public void useHandle(final HandleConsumer callback) throws CallbackFailedException
+    public <X extends Exception> void useHandle(final HandleConsumer<X> callback) throws X
     {
         withHandle(h -> { callback.useHandle(h); return null; });
     }
@@ -398,20 +395,15 @@ public class DBI
     public <R, E, X extends Exception> R withExtension(Class<E> extensionType, ExtensionCallback<R, E, X> callback)
             throws NoSuchExtensionException, X
     {
-        LazyHandle handle = new LazyHandle();
+        try (LazyHandle handle = new LazyHandle()) {
+            E extension = extensionRegistry.findExtensionFor(extensionType, handle)
+                    .orElseThrow(() -> new NoSuchExtensionException("Extension not found: " + extensionType));
 
-        E extension = extensionRegistry.findExtensionFor(extensionType, handle)
-                .orElseThrow(() -> new NoSuchExtensionException("Extension not found: " + extensionType));
-
-        try {
             return callback.withExtension(extension);
-        }
-        finally {
-            handle.close();
         }
     }
 
-    private class LazyHandle implements Supplier<Handle> {
+    private class LazyHandle implements Supplier<Handle>, AutoCloseable {
         private volatile Handle handle;
         private volatile boolean closed = false;
 
